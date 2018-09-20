@@ -1,0 +1,45 @@
+import net.ltgt.gradle.errorprone.CheckSeverity
+
+plugins {
+  id "java"
+  id "com.github.ben-manes.versions" version "0.20.0"
+  id "org.openstreetmap.josm" version "0.5.0"
+  id "net.ltgt.errorprone" version "0.6"
+}
+
+repositories {
+  jcenter()
+}
+dependencies {
+  if (!JavaVersion.current().isJava9Compatible()) {
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+  }
+  errorprone("com.google.errorprone:error_prone_core:2.3.1")
+}
+
+test {
+  useJUnitPlatform()
+  testLogging.exceptionFormat = 'full'
+}
+
+sourceSets.main.java {
+  srcDirs = ["src/"]
+}
+tasks.processResources {
+  from("$projectDir/GPL-*")
+  from("$projectDir/README")
+}
+
+archivesBaseName = "rex"
+josm {
+  i18n {
+    pathTransformer = getPathTransformer("github.com/JOSM/rex/blob")
+  }
+}
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs += [
+    "-Xlint:all",
+    "-Xlint:-serial",
+  ]
+}
